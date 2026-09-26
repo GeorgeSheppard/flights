@@ -28,6 +28,9 @@ const MAP_STYLES = {
   dark: 'https://tiles.openfreemap.org/styles/dark',
 };
 
+// Remembered across mounts so returning from another page puts the map back where it was.
+let lastView: { longitude: number; latitude: number; zoom: number } = config.initialView;
+
 // Fingertips are imprecise, so a tap anywhere near a plane should still select it.
 const TAP_TOLERANCE_PX = 16;
 
@@ -69,6 +72,8 @@ export function FlightMap({
     const map = internalRef.current;
     if (!map) return;
     const bounds = map.getBounds();
+    const center = map.getCenter();
+    lastView = { longitude: center.lng, latitude: center.lat, zoom: map.getZoom() };
     onViewportChange({
       bounds: {
         west: bounds.getWest(),
@@ -110,7 +115,7 @@ export function FlightMap({
   return (
     <Map
       ref={internalRef}
-      initialViewState={config.initialView}
+      initialViewState={lastView}
       mapStyle={MAP_STYLES[appearance]}
       style={{ position: 'absolute', inset: 0 }}
       attributionControl={{ compact: true }}

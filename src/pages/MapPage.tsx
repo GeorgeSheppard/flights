@@ -9,10 +9,12 @@ import {
 import { FlightMap, type ViewportChange } from '@/features/map/FlightMap';
 import { MapStatus } from '@/features/map/MapStatus';
 import { toAreaQuery } from '@/lib/bounds';
-import { config } from './config';
-import { useColorScheme } from './useColorScheme';
+import { config } from '@/app/config';
+import { useColorScheme } from '@/app/useColorScheme';
+import { SearchButton } from '@/features/search/SearchButton';
+import styles from './MapPage.module.css';
 
-export function App() {
+export function MapPage() {
   const appearance = useColorScheme();
   const [viewport, setViewport] = useState<ViewportChange | null>(null);
   const [selected, setSelected] = useSelectedFlight();
@@ -45,13 +47,16 @@ export function App() {
         onViewportChange={setViewport}
         focus={focus}
       />
-      <MapStatus
-        count={aircraft.length}
-        tooFarOut={tooFarOut}
-        isFetching={area.isFetching}
-        error={area.error}
-        panelOpen={selected !== null}
-      />
+      {/* On wide screens the details panel sits top-left, so the toolbar moves aside for it. */}
+      <div className={styles.toolbar} data-panel-open={selected !== null || undefined}>
+        <SearchButton />
+        <MapStatus
+          count={aircraft.length}
+          tooFarOut={tooFarOut}
+          isFetching={area.isFetching}
+          error={area.error}
+        />
+      </div>
       {selected && (
         <FlightDetailsSheet
           key={selected.icao24}
@@ -66,7 +71,9 @@ export function App() {
 
 // When the app is opened from a shared link, centre the map on that flight once its position loads.
 function useSharedFlightFocus(selected: SelectedFlight | null) {
-  const [sharedFlight] = useState(() => parseSelection(window.location.search));
+  const [sharedFlight] = useState(() =>
+    parseSelection(new URLSearchParams(window.location.search))
+  );
   const stillSelected = sharedFlight && selected?.icao24 === sharedFlight.icao24;
   const position = useFlightDetails(stillSelected ? selected : null).data?.position;
   const hasPosition = position != null;

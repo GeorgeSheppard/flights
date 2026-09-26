@@ -1,12 +1,15 @@
-.status {
+.toolbar {
   position: absolute;
   top: calc(env(safe-area-inset-top) + var(--space-3));
   left: calc(env(safe-area-inset-left) + var(--space-3));
-  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 @media (min-width: 768px) {
-  .status[data-panel-open] {
+  .toolbar[data-panel-open] {
     left: calc(380px + var(--space-4) * 2);
   }
 }

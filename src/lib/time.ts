@@ -16,3 +16,13 @@ export function flightProgress(
   if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null;
   return Math.min(1, Math.max(0, (now - start) / (end - start)));
 }
+
+const dateFormat = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+});
+
+export function formatDate(iso: string | null): string {
+  return iso ? dateFormat.format(new Date(iso)) : '—';
+}

@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 export interface SelectedFlight {
   icao24: string;
@@ -9,49 +10,49 @@ export interface SelectedFlight {
 // gesture closes the details sheet.
 const FLIGHT_PARAM = 'flight';
 const CALLSIGN_PARAM = 'callsign';
-const SHEET_HISTORY_STATE = 'flight-sheet';
 
-function subscribe(onChange: () => void) {
-  window.addEventListener('popstate', onChange);
-  return () => window.removeEventListener('popstate', onChange);
+interface SheetHistoryState {
+  openedSheet?: boolean;
 }
 
-const getSearch = () => window.location.search;
-
-export function parseSelection(search: string): SelectedFlight | null {
-  const params = new URLSearchParams(search);
+export function parseSelection(params: URLSearchParams): SelectedFlight | null {
   const icao24 = params.get(FLIGHT_PARAM);
   return icao24 ? { icao24, callsign: params.get(CALLSIGN_PARAM) } : null;
 }
 
 export function useSelectedFlight() {
-  const search = useSyncExternalStore(subscribe, getSearch);
-  const selected = useMemo(() => parseSelection(search), [search]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const selected = useMemo(() => parseSelection(searchParams), [searchParams]);
+  const openedSheet = (location.state as SheetHistoryState | null)?.openedSheet === true;
+  const hasSelection = selected !== null;
 
-  const setSelected = useCallback((flight: SelectedFlight | null) => {
-    const pushedByUs = window.history.state === SHEET_HISTORY_STATE;
-    if (!flight && pushedByUs) {
-      window.history.back();
-      return;
-    }
+  const setSelected = useCallback(
+    (flight: SelectedFlight | null) => {
+      // Closing a sheet we opened goes back, so the history doesn't fill up with map states.
+      if (!flight && openedSheet) {
+        navigate(-1);
+        return;
+      }
 
-    const hadSelection = parseSelection(window.location.search) !== null;
-    const url = new URL(window.location.href);
-    url.searchParams.delete(FLIGHT_PARAM);
-    url.searchParams.delete(CALLSIGN_PARAM);
-    if (flight) {
-      url.searchParams.set(FLIGHT_PARAM, flight.icao24);
-      if (flight.callsign) url.searchParams.set(CALLSIGN_PARAM, flight.callsign);
-    }
+      const params = new URLSearchParams(searchParams);
+      params.delete(FLIGHT_PARAM);
+      params.delete(CALLSIGN_PARAM);
+      if (flight) {
+        params.set(FLIGHT_PARAM, flight.icao24);
+        if (flight.callsign) params.set(CALLSIGN_PARAM, flight.callsign);
+      }
 
-    // Opening pushes a history entry so "back" closes the sheet; switching flights replaces it.
-    if (flight && !hadSelection) {
-      window.history.pushState(SHEET_HISTORY_STATE, '', url);
-    } else {
-      window.history.replaceState(window.history.state, '', url);
-    }
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }, []);
+      // Opening pushes a history entry so "back" closes the sheet; switching flights replaces it.
+      const opening = flight !== null && !hasSelection;
+      setSearchParams(params, {
+        replace: !opening,
+        state: opening ? { openedSheet: true } : location.state,
+      });
+    },
+    [openedSheet, hasSelection, searchParams, setSearchParams, navigate, location.state]
+  );
 
   return [selected, setSelected] as const;
 }
