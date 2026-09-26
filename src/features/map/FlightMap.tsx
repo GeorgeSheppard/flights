@@ -23,10 +23,8 @@ import {
 } from './aircraftLayer';
 import { addPlaneIcon } from './planeIcon';
 
-const MAP_STYLES = {
-  light: 'https://tiles.openfreemap.org/styles/positron',
-  dark: 'https://tiles.openfreemap.org/styles/dark',
-};
+// A colourful street map in both light and dark mode: water, parks and roads stay easy to tell apart.
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
 // Remembered across mounts so returning from another page puts the map back where it was.
 let lastView: { longitude: number; latitude: number; zoom: number } = config.initialView;
@@ -42,7 +40,6 @@ export interface ViewportChange {
 interface FlightMapProps {
   aircraft: Aircraft[];
   selectedIcao24: string | null;
-  appearance: 'light' | 'dark';
   onSelect: (aircraft: AircraftFeatureProperties | null) => void;
   onViewportChange: (viewport: ViewportChange) => void;
   // A point to move the camera to, e.g. a shared flight that may be outside the initial view.
@@ -52,7 +49,6 @@ interface FlightMapProps {
 export function FlightMap({
   aircraft,
   selectedIcao24,
-  appearance,
   onSelect,
   onViewportChange,
   focus,
@@ -116,7 +112,7 @@ export function FlightMap({
     <Map
       ref={internalRef}
       initialViewState={lastView}
-      mapStyle={MAP_STYLES[appearance]}
+      mapStyle={MAP_STYLE}
       style={{ position: 'absolute', inset: 0 }}
       attributionControl={{ compact: true }}
       dragRotate={false}
@@ -139,8 +135,8 @@ export function FlightMap({
       <NavigationControl position="top-right" showCompass={false} />
       <GeolocateControl position="top-right" />
       <Source id={AIRCRAFT_SOURCE_ID} type="geojson" data={data}>
-        <Layer {...aircraftLabelLayer(appearance)} />
-        <Layer {...aircraftLayer(appearance)} />
+        <Layer {...aircraftLabelLayer()} />
+        <Layer {...aircraftLayer()} />
         <Layer {...selectedAircraftLayer(selectedIcao24)} />
       </Source>
     </Map>

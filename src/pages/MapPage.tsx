@@ -10,12 +10,10 @@ import { FlightMap, type ViewportChange } from '@/features/map/FlightMap';
 import { MapStatus } from '@/features/map/MapStatus';
 import { toAreaQuery } from '@/lib/bounds';
 import { config } from '@/app/config';
-import { useColorScheme } from '@/app/useColorScheme';
 import { SearchButton } from '@/features/search/SearchButton';
 import styles from './MapPage.module.css';
 
 export function MapPage() {
-  const appearance = useColorScheme();
   const [viewport, setViewport] = useState<ViewportChange | null>(null);
   const [selected, setSelected] = useSelectedFlight();
   const focus = useSharedFlightFocus(selected);
@@ -42,7 +40,6 @@ export function MapPage() {
       <FlightMap
         aircraft={aircraft}
         selectedIcao24={selected?.icao24 ?? null}
-        appearance={appearance}
         onSelect={handleSelect}
         onViewportChange={setViewport}
         focus={focus}
