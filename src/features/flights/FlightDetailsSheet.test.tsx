@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import type { FlightDetails } from '@/api/types';
-import { renderWithProviders } from '@/test/render';
+import { mockFetch, renderWithProviders } from '@/test/render';
 import { FlightDetailsSheet } from './FlightDetailsSheet';
 
 const details: FlightDetails = {
@@ -31,12 +31,6 @@ const details: FlightDetails = {
     actualIn: null,
   },
 };
-
-function mockFetch(response: Response) {
-  const fetchMock = vi.fn(async (_request: Request) => response);
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
-}
 
 describe('FlightDetailsSheet', () => {
   afterEach(() => vi.unstubAllGlobals());

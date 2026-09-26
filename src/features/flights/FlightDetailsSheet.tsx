@@ -4,6 +4,7 @@ import type { Aircraft } from '@/api/types';
 import { BottomSheet } from '@/components/BottomSheet';
 import { FlightDetailsContent } from './FlightDetailsContent';
 import { useFlightDetails } from './queries';
+import { statusColor } from './status';
 import type { SelectedFlight } from './selection';
 
 interface FlightDetailsSheetProps {
@@ -26,7 +27,7 @@ export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsS
             {callsign ?? flight.icao24.toUpperCase()}
           </Heading>
           {route?.status && (
-            <Badge color="blue" variant="soft" radius="full">
+            <Badge color={statusColor(route.status)} variant="soft" radius="full">
               {route.status}
             </Badge>
           )}

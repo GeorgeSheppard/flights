@@ -36,13 +36,20 @@ function AirportColumn({
   );
 }
 
-export function RouteSummary({ route }: { route: FlightRoute }) {
+interface RouteSummaryProps {
+  route: FlightRoute;
+  // `inline` drops the card chrome, for use inside a surface that already has its own.
+  variant?: 'card' | 'inline';
+}
+
+export function RouteSummary({ route, variant = 'card' }: RouteSummaryProps) {
   const departure = route.actualOut ?? route.estimatedOut ?? route.scheduledOut;
   const arrival = route.actualIn ?? route.estimatedIn ?? route.scheduledIn;
   const progress = flightProgress(departure, arrival);
+  const inFlight = progress !== null && route.actualOut !== null && route.actualIn === null;
 
-  return (
-    <Card size="2">
+  const content = (
+    <>
       <Flex align="start" gap="3">
         <AirportColumn
           airport={route.origin}
@@ -60,11 +67,13 @@ export function RouteSummary({ route }: { route: FlightRoute }) {
           align="right"
         />
       </Flex>
-      {progress !== null && (
+      {inFlight && (
         <Box mt="3">
           <Progress value={progress * 100} size="1" aria-label="Flight progress" />
         </Box>
       )}
-    </Card>
+    </>
   );
+
+  return variant === 'card' ? <Card size="2">{content}</Card> : content;
 }
