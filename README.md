@@ -32,6 +32,17 @@ pnpm test         # vitest
 pnpm build
 ```
 
+### End-to-end tests
+
+Playwright tests in `e2e/` drive the production build in mobile and desktop Chromium. Every API
+call is mocked per test (`e2e/mocks.ts`), and the basemap is replaced with a blank style, so they
+need no backend or network. They run in CI on every PR.
+
+```sh
+pnpm exec playwright install chromium   # first time only
+pnpm test:e2e                           # or test:e2e:ui to watch them run
+```
+
 Set `VITE_API_BASE_URL` (see `.env.example`) to point at a local API; it defaults to production.
 
 ### Deployment
@@ -62,7 +73,8 @@ src/
     search/     Flight number search: query hook, result grouping, and result cards
   components/   Generic, feature-agnostic UI (bottom sheet, icons)
   lib/          Pure helpers (unit formatting, time, bounding boxes); unit tested
-  test/         Test setup and render helpers
+  test/         Unit test setup and render helpers
+e2e/            Playwright end-to-end tests and API mocks
 ```
 
 Adding a feature usually means a new folder under `features/`, with its own queries alongside its
