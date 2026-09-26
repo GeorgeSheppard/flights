@@ -1,0 +1,82 @@
+.sheet {
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 85dvh;
+  background: var(--color-panel-solid);
+  border-top-left-radius: var(--radius-5);
+  border-top-right-radius: var(--radius-5);
+  box-shadow: var(--shadow-5);
+  transform: translateY(var(--sheet-translate, 0));
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: slide-up 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sheet[data-dragging] {
+  transition: none;
+}
+
+.dragArea {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  touch-action: none;
+  cursor: grab;
+}
+
+.handle {
+  width: 36px;
+  height: 5px;
+  margin: 0 auto var(--space-3);
+  border-radius: var(--radius-6);
+  background: var(--gray-a6);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: 0 var(--space-4) var(--space-5);
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+}
+
+.sheet[data-snap='full'] .content {
+  overflow-y: auto;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (min-width: 768px) {
+  .sheet {
+    top: var(--space-4);
+    left: var(--space-4);
+    right: auto;
+    bottom: auto;
+    width: 380px;
+    max-height: calc(100dvh - var(--space-4) * 2);
+    border-radius: var(--radius-5);
+    transform: none;
+    animation: none;
+  }
+
+  .dragArea {
+    padding-top: var(--space-4);
+    cursor: default;
+  }
+
+  .handle {
+    display: none;
+  }
+
+  .content {
+    overflow-y: auto;
+  }
+}

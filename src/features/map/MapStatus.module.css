@@ -1,0 +1,12 @@
+.status {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + var(--space-3));
+  left: calc(env(safe-area-inset-left) + var(--space-3));
+  box-shadow: var(--shadow-3);
+}
+
+@media (min-width: 768px) {
+  .status[data-panel-open] {
+    left: calc(380px + var(--space-4) * 2);
+  }
+}

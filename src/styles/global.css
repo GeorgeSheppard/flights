@@ -1,0 +1,32 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep MapLibre's controls clear of the notch and in the app's visual language. */
+.maplibregl-ctrl-top-right {
+  top: env(safe-area-inset-top);
+  right: env(safe-area-inset-right);
+}
+
+.maplibregl-ctrl-group {
+  border-radius: var(--radius-3) !important;
+  box-shadow: var(--shadow-3) !important;
+  background: var(--color-panel-solid) !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--gray-a4) !important;
+}
+
+.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
