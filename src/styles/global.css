@@ -11,6 +11,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Shared inset for everything floating over the map, so overlays line up with each other. Set on
+   the theme root because that's where Radix defines its spacing scale. */
+.radix-themes {
+  --overlay-inset: var(--space-3);
+}
+
 /* Keep MapLibre's controls clear of the notch and in the app's visual language. */
 .maplibregl-ctrl-top-right {
   top: env(safe-area-inset-top);

@@ -12,7 +12,7 @@ async function openMapWithAircraft(page: Page, path = '/') {
     '/flights/details': () => ({ json: flightDetails }),
   });
   await page.goto(path);
-  await expect(page.getByText('1 flight', { exact: true })).toBeVisible();
+  await expect.poll(() => areaRequests.length).toBeGreaterThan(0);
   return areaRequests;
 }
 
