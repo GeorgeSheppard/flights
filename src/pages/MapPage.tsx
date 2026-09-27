@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
+import { MapProvider } from '@vis.gl/react-maplibre';
+import { Flex } from '@radix-ui/themes';
 import { FlightDetailsSheet } from '@/features/flights/FlightDetailsSheet';
 import { useAircraftInArea, useFlightDetails } from '@/features/flights/queries';
 import {
@@ -10,10 +12,23 @@ import { FlightMap, type ViewportChange } from '@/features/map/FlightMap';
 import { MapStatus } from '@/features/map/MapStatus';
 import { toAreaQuery } from '@/lib/bounds';
 import { config } from '@/app/config';
+import { useFlightMap, type MapArea } from '@/features/map/useFlightMap';
+import { AddPinDialog } from '@/features/pins/AddPinDialog';
+import { PinMarkers } from '@/features/pins/PinMarkers';
+import { PinsMenu } from '@/features/pins/PinsMenu';
+import { pinStore, usePins } from '@/features/pins/pinStore';
 import { SearchButton } from '@/features/search/SearchButton';
 import styles from './MapPage.module.css';
 
 export function MapPage() {
+  return (
+    <MapProvider>
+      <MapScreen />
+    </MapProvider>
+  );
+}
+
+function MapScreen() {
   const [viewport, setViewport] = useState<ViewportChange | null>(null);
   const [selected, setSelected] = useSelectedFlight();
   const focus = useSharedFlightFocus(selected);
@@ -29,6 +44,10 @@ export function MapPage() {
     ? aircraft.find((plane) => plane.icao24 === selected.icao24)
     : undefined;
 
+  const pins = usePins();
+  const [pendingPin, setPendingPin] = useState<MapArea | null>(null);
+  const map = useFlightMap();
+
   const handleSelect = useCallback(
     (plane: { icao24: string; callsign: string | null } | null) =>
       setSelected(plane && { icao24: plane.icao24, callsign: plane.callsign }),
@@ -43,16 +62,17 @@ export function MapPage() {
         onSelect={handleSelect}
         onViewportChange={setViewport}
         focus={focus}
-      />
+        onLongPress={setPendingPin}
+      >
+        <PinMarkers />
+      </FlightMap>
       {/* On wide screens the details panel sits top-left, so the toolbar moves aside for it. */}
       <div className={styles.toolbar} data-panel-open={selected !== null || undefined}>
-        <SearchButton />
-        <MapStatus
-          count={aircraft.length}
-          tooFarOut={tooFarOut}
-          isFetching={area.isFetching}
-          error={area.error}
-        />
+        <Flex gap="2">
+          <SearchButton />
+          <PinsMenu onAddCurrentView={() => setPendingPin(map.currentArea())} />
+        </Flex>
+        <MapStatus tooFarOut={tooFarOut} error={area.error} />
       </div>
       {selected && (
         <FlightDetailsSheet
@@ -60,6 +80,16 @@ export function MapPage() {
           flight={selected}
           snapshot={snapshot}
           onClose={() => setSelected(null)}
+        />
+      )}
+      {pendingPin && (
+        <AddPinDialog
+          defaultName={`Pin ${pins.length + 1}`}
+          onCancel={() => setPendingPin(null)}
+          onSave={(name) => {
+            pinStore.addPin({ ...pendingPin, name });
+            setPendingPin(null);
+          }}
         />
       )}
     </main>

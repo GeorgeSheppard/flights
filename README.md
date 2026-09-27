@@ -6,7 +6,9 @@ backed by the `/flights/*` endpoints in
 
 Pan and zoom the map to see live aircraft (via OpenSky), and tap a plane to see its details (via
 OpenSky and FlightAware). The search page (`/search?q=BA123`) lists recent, current and upcoming
-flights for a flight number (via FlightAware). The selected flight is kept in the URL (`?flight=<icao24>`), so links can
+flights for a flight number (via FlightAware). Long-press the map (or right-click) to drop a named
+pin; tapping a pin, on the map or in the pins menu, flies back to that area. Pins are saved on the
+device. The selected flight is kept in the URL (`?flight=<icao24>`), so links can
 be shared and the back gesture closes the details sheet.
 
 ## Stack
@@ -71,6 +73,7 @@ src/
     map/        The MapLibre map, aircraft layers, and map overlays
     flights/    Data hooks (queries), URL selection state, and the flight details UI
     search/     Flight number search: query hook, result grouping, and result cards
+    pins/       Saved places: device-local store, map markers, menu, and naming dialog
   components/   Generic, feature-agnostic UI (bottom sheet, icons)
   lib/          Pure helpers (unit formatting, time, bounding boxes); unit tested
   test/         Unit test setup and render helpers
