@@ -1,0 +1,33 @@
+.pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.label {
+  max-width: 140px;
+  padding: 1px var(--space-2);
+  overflow: hidden;
+  border-radius: var(--radius-4);
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  color: var(--gray-12);
+  font-family: var(--default-font-family);
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  width: 22px;
+  height: 30px;
+  color: var(--red-9);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.3));
+}

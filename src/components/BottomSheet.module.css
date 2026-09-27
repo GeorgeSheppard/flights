@@ -56,12 +56,12 @@
 
 @media (min-width: 768px) {
   .sheet {
-    top: var(--space-4);
-    left: var(--space-4);
+    top: calc(env(safe-area-inset-top) + var(--overlay-inset));
+    left: calc(env(safe-area-inset-left) + var(--overlay-inset));
     right: auto;
     bottom: auto;
     width: 380px;
-    max-height: calc(100dvh - var(--space-4) * 2);
+    max-height: calc(100dvh - var(--overlay-inset) * 2);
     border-radius: var(--radius-5);
     transform: none;
     animation: none;

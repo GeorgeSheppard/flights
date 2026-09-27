@@ -53,7 +53,7 @@ const iconSize = (scale = 1): ExpressionSpecification => [
   1.1 * scale,
 ];
 
-export function aircraftLayer(appearance: 'light' | 'dark'): LayerProps {
+export function aircraftLayer(): LayerProps {
   return {
     id: AIRCRAFT_LAYER_ID,
     type: 'symbol',
@@ -67,14 +67,14 @@ export function aircraftLayer(appearance: 'light' | 'dark'): LayerProps {
     },
     paint: {
       'icon-color': ['case', ['get', 'onGround'], colors.ground, colors.airborne],
-      'icon-halo-color': appearance === 'dark' ? '#111113' : '#1c2024',
+      'icon-halo-color': '#1c2024',
       'icon-halo-width': 1.5,
     },
   };
 }
 
 // Kept separate from the icons so that if the basemap's glyphs fail to load, planes still render.
-export function aircraftLabelLayer(appearance: 'light' | 'dark'): LayerProps {
+export function aircraftLabelLayer(): LayerProps {
   return {
     id: `${AIRCRAFT_LAYER_ID}-labels`,
     type: 'symbol',
@@ -88,8 +88,8 @@ export function aircraftLabelLayer(appearance: 'light' | 'dark'): LayerProps {
       'text-optional': true,
     },
     paint: {
-      'text-color': appearance === 'dark' ? '#edeef0' : '#1c2024',
-      'text-halo-color': appearance === 'dark' ? '#111113' : '#ffffff',
+      'text-color': '#1c2024',
+      'text-halo-color': '#ffffff',
       'text-halo-width': 1.5,
     },
   };

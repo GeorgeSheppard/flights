@@ -13,7 +13,14 @@ export function Providers({ children }: { children: ReactNode }) {
   const appearance = useColorScheme();
   return (
     <QueryClientProvider client={queryClient}>
-      <Theme appearance={appearance} accentColor="blue" grayColor="slate" radius="large">
+      {/* Solid panels, since overlays float over a light map even in dark mode. */}
+      <Theme
+        appearance={appearance}
+        accentColor="blue"
+        grayColor="slate"
+        radius="large"
+        panelBackground="solid"
+      >
         {children}
       </Theme>
     </QueryClientProvider>
