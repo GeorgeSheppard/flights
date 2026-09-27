@@ -26,14 +26,22 @@ export function createTrackStore() {
   let version = 0;
 
   return {
+    // `time` is when the request was made. Responses can arrive out of order (a slow area request
+    // landing after a quicker details request made later), so points are inserted by that time
+    // rather than appended, and the newest known position always ends the track.
     record(positions: Position[], time: number) {
       let changed = false;
       for (const { icao24, longitude, latitude } of positions) {
         const track = tracks.get(icao24) ?? [];
-        const last = track.at(-1);
+        let index = track.length;
+        while (index > 0 && track[index - 1]!.time > time) index--;
+
         // OpenSky repeats the last known position until it hears from the aircraft again.
-        if (last && last.longitude === longitude && last.latitude === latitude) continue;
-        track.push({ longitude, latitude, time });
+        const samePlace = (point: TrackPoint | undefined) =>
+          point?.longitude === longitude && point.latitude === latitude;
+        if (samePlace(track[index - 1]) || samePlace(track[index])) continue;
+
+        track.splice(index, 0, { longitude, latitude, time });
         if (track.length > MAX_POINTS) track.shift();
         tracks.set(icao24, track);
         changed = true;

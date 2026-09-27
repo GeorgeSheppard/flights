@@ -16,8 +16,9 @@ export function useAircraftInArea(query: AreaQuery | null) {
     queryKey: flightKeys.area(query ?? {}),
     queryFn: query
       ? async ({ signal }) => {
+          const requestedAt = Date.now();
           const data = unwrap(await apiClient.GET('/flights/area', { params: { query }, signal }));
-          trackStore.record(data.aircraft, Date.now());
+          trackStore.record(data.aircraft, requestedAt);
           return data;
         }
       : skipToken,
@@ -33,6 +34,7 @@ export function useFlightDetails(flight: SelectedFlight | null) {
     queryKey: flightKeys.details(flight ?? { icao24: '' }),
     queryFn: flight
       ? async ({ signal }) => {
+          const requestedAt = Date.now();
           const data = unwrap(
             await apiClient.GET('/flights/details', {
               params: { query: { icao24: flight.icao24, callsign: flight.callsign ?? undefined } },
@@ -40,7 +42,7 @@ export function useFlightDetails(flight: SelectedFlight | null) {
             })
           );
           if (data.position)
-            trackStore.record([{ ...data.position, icao24: data.icao24 }], Date.now());
+            trackStore.record([{ ...data.position, icao24: data.icao24 }], requestedAt);
           return data;
         }
       : skipToken,

@@ -42,3 +42,20 @@ describe('trackStore', () => {
     expect(store.getTrack('b')).toHaveLength(1);
   });
 });
+
+describe('trackStore ordering', () => {
+  it('keeps positions in the order they were requested, even if responses arrive out of order', () => {
+    const store = createTrackStore();
+    store.record([at('a', 0, 51)], 0);
+    // A details request made at t=20.1s returns first with the newer position...
+    store.record([at('a', 0.2, 51)], 20_100);
+    // ...then a slower area request made earlier, at t=19.9s, arrives with an older one.
+    store.record([at('a', 0.1, 51)], 19_900);
+
+    expect(store.getTrack('a')).toEqual([
+      [0, 51],
+      [0.1, 51],
+      [0.2, 51],
+    ]);
+  });
+});
