@@ -18,6 +18,8 @@ import { PinMarkers } from '@/features/pins/PinMarkers';
 import { PinsMenu } from '@/features/pins/PinsMenu';
 import { pinStore, usePins } from '@/features/pins/pinStore';
 import { SearchButton } from '@/features/search/SearchButton';
+import { toTrackFeature } from '@/features/tracks/trackLayer';
+import { useTrack } from '@/features/tracks/trackStore';
 import styles from './MapPage.module.css';
 
 export function MapPage() {
@@ -39,7 +41,20 @@ function MapScreen() {
     [viewport, tooFarOut]
   );
   const area = useAircraftInArea(areaQuery);
-  const aircraft = useMemo(() => (tooFarOut ? [] : (area.data ?? [])), [area.data, tooFarOut]);
+  const trackPoints = useTrack(selected?.icao24 ?? null);
+  const track = useMemo(() => toTrackFeature(trackPoints), [trackPoints]);
+  const aircraft = useMemo(() => {
+    if (tooFarOut) return [];
+    // The selected plane's details refresh on their own schedule, so its newest known position
+    // (the end of its track) can be more recent than the area data. Draw it there, at the tip of
+    // its trajectory.
+    const latest = trackPoints.at(-1);
+    return (area.data ?? []).map((plane) =>
+      latest && plane.icao24 === selected?.icao24
+        ? { ...plane, longitude: latest[0], latitude: latest[1] }
+        : plane
+    );
+  }, [area.data, tooFarOut, trackPoints, selected?.icao24]);
   const snapshot = selected
     ? aircraft.find((plane) => plane.icao24 === selected.icao24)
     : undefined;
@@ -62,6 +77,7 @@ function MapScreen() {
         onSelect={handleSelect}
         onViewportChange={setViewport}
         focus={focus}
+        track={track}
         onLongPress={setPendingPin}
       >
         <PinMarkers />
