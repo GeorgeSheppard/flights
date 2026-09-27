@@ -5,6 +5,7 @@ import type { Aircraft } from '@/api/types';
 
 export const AIRCRAFT_SOURCE_ID = 'aircraft';
 export const AIRCRAFT_LAYER_ID = 'aircraft';
+export const AIRCRAFT_LABEL_LAYER_ID = `${AIRCRAFT_LAYER_ID}-labels`;
 export const PLANE_ICON_ID = 'plane';
 
 export interface AircraftFeatureProperties {
@@ -76,7 +77,7 @@ export function aircraftLayer(): LayerProps {
 // Kept separate from the icons so that if the basemap's glyphs fail to load, planes still render.
 export function aircraftLabelLayer(): LayerProps {
   return {
-    id: `${AIRCRAFT_LAYER_ID}-labels`,
+    id: AIRCRAFT_LABEL_LAYER_ID,
     type: 'symbol',
     minzoom: 9,
     layout: {

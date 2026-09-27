@@ -14,6 +14,7 @@ import type { Aircraft } from '@/api/types';
 import { config } from '@/app/config';
 import type { Bounds } from '@/lib/bounds';
 import {
+  AIRCRAFT_LABEL_LAYER_ID,
   AIRCRAFT_LAYER_ID,
   AIRCRAFT_SOURCE_ID,
   aircraftLabelLayer,
@@ -22,6 +23,8 @@ import {
   toFeatureCollection,
   type AircraftFeatureProperties,
 } from './aircraftLayer';
+import type { Feature, LineString } from 'geojson';
+import { TRACK_SOURCE_ID, trackCasingLayer, trackLineLayer } from '@/features/tracks/trackLayer';
 import { addPlaneIcon } from './planeIcon';
 import { FLIGHT_MAP_ID, type MapArea } from './useFlightMap';
 
@@ -50,6 +53,8 @@ interface FlightMapProps {
   onViewportChange: (viewport: ViewportChange) => void;
   // A point to move the camera to, e.g. a shared flight that may be outside the initial view.
   focus?: { longitude: number; latitude: number } | null;
+  // The selected aircraft's recent path, drawn beneath the aircraft.
+  track?: Feature<LineString> | null;
   // Long-press on touch screens, or right-click with a mouse.
   onLongPress?: (area: MapArea) => void;
   children?: ReactNode;
@@ -61,6 +66,7 @@ export function FlightMap({
   onSelect,
   onViewportChange,
   focus,
+  track,
   onLongPress,
   children,
 }: FlightMapProps) {
@@ -151,6 +157,13 @@ export function FlightMap({
     >
       <NavigationControl position="top-right" showCompass={false} />
       <GeolocateControl position="top-right" />
+      {track && (
+        <Source id={TRACK_SOURCE_ID} type="geojson" data={track} lineMetrics>
+          {/* The track appears after the aircraft layers exist, so keep it explicitly beneath them. */}
+          <Layer {...trackCasingLayer} beforeId={AIRCRAFT_LABEL_LAYER_ID} />
+          <Layer {...trackLineLayer} beforeId={AIRCRAFT_LABEL_LAYER_ID} />
+        </Source>
+      )}
       <Source id={AIRCRAFT_SOURCE_ID} type="geojson" data={data}>
         <Layer {...aircraftLabelLayer()} />
         <Layer {...aircraftLayer()} />
