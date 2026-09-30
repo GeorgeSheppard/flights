@@ -6,6 +6,7 @@ import { FlightDetailsSheet } from './FlightDetailsSheet';
 const details: FlightDetails = {
   icao24: '4ca7b3',
   callsign: 'BAW123',
+  airline: { code: 'BAW', name: 'British Airways' },
   position: {
     latitude: 51.47,
     longitude: -0.45,
@@ -17,7 +18,7 @@ const details: FlightDetails = {
   },
   route: {
     faFlightId: 'BAW123-1',
-    operator: 'British Airways',
+    operator: 'BAW',
     aircraftType: 'A320',
     registration: 'G-EUUA',
     origin: { code: 'LHR', name: 'Heathrow', city: 'London' },
@@ -56,6 +57,26 @@ describe('FlightDetailsSheet', () => {
     expect(url.pathname).toBe('/flights/details');
     expect(url.searchParams.get('icao24')).toBe('4ca7b3');
     expect(url.searchParams.get('callsign')).toBe('BAW123');
+  });
+
+  it('shows the airline even when no route information is available', async () => {
+    mockFetch(Response.json({ ...details, route: null }));
+
+    renderWithProviders(
+      <FlightDetailsSheet flight={{ icao24: '4ca7b3' }} snapshot={undefined} onClose={() => {}} />
+    );
+
+    expect(await screen.findByText('British Airways')).toBeInTheDocument();
+  });
+
+  it('falls back to the airline code when its name is unknown', async () => {
+    mockFetch(Response.json({ ...details, airline: { code: 'BAW', name: null } }));
+
+    renderWithProviders(
+      <FlightDetailsSheet flight={{ icao24: '4ca7b3' }} snapshot={undefined} onClose={() => {}} />
+    );
+
+    expect(await screen.findByText('BAW')).toBeInTheDocument();
   });
 
   it('explains when no route information is available', async () => {

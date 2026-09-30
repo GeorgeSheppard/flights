@@ -18,6 +18,7 @@ export const aircraft = {
 export const flightDetails = {
   icao24: aircraft.icao24,
   callsign: aircraft.callsign,
+  airline: { code: 'BAW', name: 'British Airways' },
   position: {
     latitude: aircraft.latitude,
     longitude: aircraft.longitude,
@@ -29,7 +30,7 @@ export const flightDetails = {
   },
   route: {
     faFlightId: 'BAW123-1',
-    operator: 'British Airways',
+    operator: 'BAW',
     aircraftType: 'A320',
     registration: 'G-EUUA',
     origin: { code: 'LHR', name: 'Heathrow', city: 'London' },
