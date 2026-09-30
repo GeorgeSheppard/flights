@@ -50,7 +50,7 @@ describe('FlightDetailsSheet', () => {
     expect(await screen.findByText('British Airways')).toBeInTheDocument();
     expect(screen.getByText('LHR')).toBeInTheDocument();
     expect(screen.getByText('EDI')).toBeInTheDocument();
-    expect(screen.getByText('35,000 ft')).toBeInTheDocument();
+    expect(screen.getByText('10,668 m')).toBeInTheDocument();
     expect(screen.getByText('G-EUUA')).toBeInTheDocument();
 
     const url = new URL(fetchMock.mock.calls[0]![0].url);

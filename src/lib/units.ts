@@ -1,17 +1,22 @@
-const FEET_PER_METER = 3.28084;
-const KNOTS_PER_METER_PER_SECOND = 1.94384;
+const KMH_PER_METER_PER_SECOND = 3.6;
+// Roughly 100 ft/min, below which an aircraft is effectively holding its altitude.
+const LEVEL_THRESHOLD_METERS_PER_SECOND = 0.5;
 
 const integer = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+const oneDecimal = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 export function formatAltitude(meters: number | null, onGround = false): string {
   if (onGround) return 'Ground';
   if (meters === null) return '—';
-  return `${integer.format(meters * FEET_PER_METER)} ft`;
+  return `${integer.format(meters)} m`;
 }
 
 export function formatSpeed(metersPerSecond: number | null): string {
   if (metersPerSecond === null) return '—';
-  return `${integer.format(metersPerSecond * KNOTS_PER_METER_PER_SECOND)} kt`;
+  return `${integer.format(metersPerSecond * KMH_PER_METER_PER_SECOND)} km/h`;
 }
 
 export function formatHeading(degrees: number | null): string {
@@ -23,8 +28,7 @@ export function formatHeading(degrees: number | null): string {
 
 export function formatVerticalRate(metersPerSecond: number | null): string {
   if (metersPerSecond === null) return '—';
-  const feetPerMinute = metersPerSecond * FEET_PER_METER * 60;
-  if (Math.abs(feetPerMinute) < 100) return 'Level';
-  const sign = feetPerMinute > 0 ? '+' : '−';
-  return `${sign}${integer.format(Math.abs(feetPerMinute))} ft/min`;
+  if (Math.abs(metersPerSecond) < LEVEL_THRESHOLD_METERS_PER_SECOND) return 'Level';
+  const sign = metersPerSecond > 0 ? '+' : '−';
+  return `${sign}${oneDecimal.format(Math.abs(metersPerSecond))} m/s`;
 }

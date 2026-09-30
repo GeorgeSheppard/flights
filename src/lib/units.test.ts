@@ -1,14 +1,14 @@
 import { formatAltitude, formatHeading, formatSpeed, formatVerticalRate } from './units';
 
 describe('units', () => {
-  it('formats altitude in feet, or as ground', () => {
-    expect(formatAltitude(10668)).toBe('35,000 ft');
+  it('formats altitude in metres, or as ground', () => {
+    expect(formatAltitude(10668)).toBe('10,668 m');
     expect(formatAltitude(100, true)).toBe('Ground');
     expect(formatAltitude(null)).toBe('—');
   });
 
-  it('formats speed in knots', () => {
-    expect(formatSpeed(231.5)).toBe('450 kt');
+  it('formats speed in km/h', () => {
+    expect(formatSpeed(231.5)).toBe('833 km/h');
     expect(formatSpeed(null)).toBe('—');
   });
 
@@ -19,8 +19,8 @@ describe('units', () => {
   });
 
   it('formats vertical rate, treating small rates as level', () => {
-    expect(formatVerticalRate(10.16)).toBe('+2,000 ft/min');
-    expect(formatVerticalRate(-5.08)).toBe('−1,000 ft/min');
+    expect(formatVerticalRate(10.16)).toBe('+10.2 m/s');
+    expect(formatVerticalRate(-5.08)).toBe('−5.1 m/s');
     expect(formatVerticalRate(0.2)).toBe('Level');
   });
 });

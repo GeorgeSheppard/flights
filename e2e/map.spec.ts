@@ -45,7 +45,7 @@ test('tapping an aircraft shows its details', async ({ page }) => {
   await expect(sheet.getByText('British Airways')).toBeVisible();
   await expect(sheet.getByText('LHR', { exact: true })).toBeVisible();
   await expect(sheet.getByText('EDI', { exact: true })).toBeVisible();
-  await expect(sheet.getByText('35,000 ft')).toBeVisible();
+  await expect(sheet.getByText('10,668 m')).toBeVisible();
   await expect(page).toHaveURL(/\?flight=4ca7b3&callsign=BAW123$/);
 
   await sheet.getByRole('button', { name: 'Close' }).click();
