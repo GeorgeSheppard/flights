@@ -1965,12 +1965,18 @@ export interface paths {
                 aircraftType: string | null;
                 registration: string | null;
                 origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
                 destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
@@ -2073,12 +2079,18 @@ export interface paths {
                 aircraftType: string | null;
                 registration: string | null;
                 origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
                 destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
@@ -2089,6 +2101,69 @@ export interface paths {
                 scheduledIn: string | null;
                 estimatedIn: string | null;
                 actualIn: string | null;
+              } | null;
+            };
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description Error message */
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/flights/photo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get a photo of a specific aircraft from Planespotters.net, with its attribution */
+    get: {
+      parameters: {
+        query: {
+          /** @description 24-bit ICAO transponder address from the area search */
+          icao24: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The aircraft photo, or null when none is available */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description A photo of this exact aircraft, null when none is available */
+              photo: {
+                /** @description Image URL, hosted by Planespotters.net */
+                url: string;
+                width: number;
+                height: number;
+                /** @description Must be credited wherever the photo is shown */
+                photographer: string;
+                /** @description Photo page on Planespotters.net, which the photo must link to */
+                link: string;
               } | null;
             };
           };

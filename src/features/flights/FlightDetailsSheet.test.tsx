@@ -21,8 +21,8 @@ const details: FlightDetails = {
     operator: 'BAW',
     aircraftType: 'A320',
     registration: 'G-EUUA',
-    origin: { code: 'LHR', name: 'Heathrow', city: 'London' },
-    destination: { code: 'EDI', name: 'Edinburgh', city: 'Edinburgh' },
+    origin: { code: 'EGLL', iataCode: 'LHR', name: 'Heathrow', city: 'London' },
+    destination: { code: 'EGPH', iataCode: 'EDI', name: 'Edinburgh', city: 'Edinburgh' },
     status: 'En Route',
     scheduledOut: '2026-09-26T10:00:00Z',
     estimatedOut: null,
@@ -53,8 +53,9 @@ describe('FlightDetailsSheet', () => {
     expect(screen.getByText('10,668 m')).toBeInTheDocument();
     expect(screen.getByText('G-EUUA')).toBeInTheDocument();
 
-    const url = new URL(fetchMock.mock.calls[0]![0].url);
-    expect(url.pathname).toBe('/flights/details');
+    const url = fetchMock.mock.calls
+      .map(([request]) => new URL(request.url))
+      .find((requested) => requested.pathname === '/flights/details')!;
     expect(url.searchParams.get('icao24')).toBe('4ca7b3');
     expect(url.searchParams.get('callsign')).toBe('BAW123');
   });
@@ -77,6 +78,24 @@ describe('FlightDetailsSheet', () => {
     );
 
     expect(await screen.findByText('BAW')).toBeInTheDocument();
+  });
+
+  it('falls back to the ICAO airport code for airfields without an IATA code', async () => {
+    mockFetch(
+      Response.json({
+        ...details,
+        route: {
+          ...details.route,
+          origin: { code: 'EGTF', iataCode: null, name: 'Fairoaks', city: 'Chobham' },
+        },
+      })
+    );
+
+    renderWithProviders(
+      <FlightDetailsSheet flight={{ icao24: '4ca7b3' }} snapshot={undefined} onClose={() => {}} />
+    );
+
+    expect(await screen.findByText('EGTF')).toBeInTheDocument();
   });
 
   it('explains when no route information is available', async () => {

@@ -10,3 +10,6 @@ export type FlightRoute = NonNullable<FlightDetails['route']>;
 export type Airport = NonNullable<FlightRoute['origin']>;
 export type FlightSearchResult =
   paths['/flights/search']['get']['responses'][200]['content']['application/json']['flights'][number];
+export type AircraftPhoto = NonNullable<
+  paths['/flights/photo']['get']['responses'][200]['content']['application/json']['photo']
+>;

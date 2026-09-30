@@ -24,7 +24,7 @@ function AirportColumn({
       flexGrow="1"
     >
       <Text size="7" weight="bold" style={{ lineHeight: 1 }}>
-        {airport?.code ?? '???'}
+        {airport?.iataCode ?? airport?.code ?? '???'}
       </Text>
       <Text size="1" color="gray" truncate style={{ maxWidth: '100%' }}>
         {airport?.city ?? airport?.name ?? 'Unknown'}
