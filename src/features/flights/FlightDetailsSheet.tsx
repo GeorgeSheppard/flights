@@ -18,6 +18,7 @@ export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsS
   const details = useFlightDetails(flight);
   const route = details.data?.route;
   const callsign = details.data?.callsign ?? flight.callsign ?? snapshot?.callsign;
+  const airline = details.data?.airline;
 
   const header = (
     <Flex align="start" justify="between" gap="3">
@@ -34,7 +35,9 @@ export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsS
         </Flex>
         <Skeleton loading={details.isPending}>
           <Text size="2" color="gray" truncate>
-            {route?.operator ?? (details.isPending ? 'Loading airline' : 'Airline unknown')}
+            {airline?.name ??
+              airline?.code ??
+              (details.isPending ? 'Loading airline' : 'Airline unknown')}
           </Text>
         </Skeleton>
       </Flex>

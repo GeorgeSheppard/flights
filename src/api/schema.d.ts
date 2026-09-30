@@ -2049,6 +2049,13 @@ export interface paths {
             'application/json': {
               icao24: string;
               callsign: string | null;
+              /** @description Operating airline, from the matched route or the callsign prefix; null for non-airline callsigns */
+              airline: {
+                /** @description ICAO airline code, e.g. "BAW" */
+                code: string;
+                /** @description Airline name, null when it could not be looked up */
+                name: string | null;
+              } | null;
               position: {
                 latitude: number;
                 longitude: number;
@@ -2061,7 +2068,7 @@ export interface paths {
               /** @description Route/airline details, null when no match could be found */
               route: {
                 faFlightId: string;
-                /** @description Operating airline */
+                /** @description ICAO code of the operating airline */
                 operator: string | null;
                 aircraftType: string | null;
                 registration: string | null;
