@@ -1965,12 +1965,18 @@ export interface paths {
                 aircraftType: string | null;
                 registration: string | null;
                 origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
                 destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
@@ -2073,12 +2079,18 @@ export interface paths {
                 aircraftType: string | null;
                 registration: string | null;
                 origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
                 destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
                   code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
                   name: string | null;
                   city: string | null;
                 } | null;
