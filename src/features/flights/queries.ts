@@ -9,6 +9,7 @@ export const flightKeys = {
   all: ['flights'] as const,
   area: (query: AreaQuery) => [...flightKeys.all, 'area', query] as const,
   details: (flight: SelectedFlight) => [...flightKeys.all, 'details', flight] as const,
+  photo: (icao24: string) => [...flightKeys.all, 'photo', icao24] as const,
 };
 
 export function useAircraftInArea(query: AreaQuery | null) {
@@ -47,5 +48,16 @@ export function useFlightDetails(flight: SelectedFlight | null) {
         }
       : skipToken,
     refetchInterval: config.detailsRefreshIntervalMs,
+  });
+}
+
+export function useAircraftPhoto(icao24: string) {
+  return useQuery({
+    queryKey: flightKeys.photo(icao24),
+    queryFn: async ({ signal }) =>
+      unwrap(await apiClient.GET('/flights/photo', { params: { query: { icao24 } }, signal }))
+        .photo,
+    // An airframe's photo doesn't change, so fetch it once per session.
+    staleTime: Infinity,
   });
 }

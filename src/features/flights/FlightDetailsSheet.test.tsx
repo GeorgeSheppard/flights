@@ -53,8 +53,9 @@ describe('FlightDetailsSheet', () => {
     expect(screen.getByText('10,668 m')).toBeInTheDocument();
     expect(screen.getByText('G-EUUA')).toBeInTheDocument();
 
-    const url = new URL(fetchMock.mock.calls[0]![0].url);
-    expect(url.pathname).toBe('/flights/details');
+    const url = fetchMock.mock.calls
+      .map(([request]) => new URL(request.url))
+      .find((requested) => requested.pathname === '/flights/details')!;
     expect(url.searchParams.get('icao24')).toBe('4ca7b3');
     expect(url.searchParams.get('callsign')).toBe('BAW123');
   });

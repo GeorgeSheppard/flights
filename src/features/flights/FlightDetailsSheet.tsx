@@ -49,7 +49,7 @@ export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsS
 
   return (
     <BottomSheet header={header} onClose={onClose}>
-      <FlightDetailsContent details={details} snapshot={snapshot} />
+      <FlightDetailsContent icao24={flight.icao24} details={details} snapshot={snapshot} />
     </BottomSheet>
   );
 }

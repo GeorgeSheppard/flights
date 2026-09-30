@@ -10,6 +10,7 @@ async function openMapWithAircraft(page: Page, path = '/') {
       return { json: { aircraft: [aircraft] } };
     },
     '/flights/details': () => ({ json: flightDetails }),
+    '/flights/photo': () => ({ json: { photo: null } }),
   });
   await page.goto(path);
   await expect.poll(() => areaRequests.length).toBeGreaterThan(0);

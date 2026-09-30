@@ -2115,6 +2115,69 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/flights/photo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Get a photo of a specific aircraft from Planespotters.net, with its attribution */
+    get: {
+      parameters: {
+        query: {
+          /** @description 24-bit ICAO transponder address from the area search */
+          icao24: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The aircraft photo, or null when none is available */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description A photo of this exact aircraft, null when none is available */
+              photo: {
+                /** @description Image URL, hosted by Planespotters.net */
+                url: string;
+                width: number;
+                height: number;
+                /** @description Must be credited wherever the photo is shown */
+                photographer: string;
+                /** @description Photo page on Planespotters.net, which the photo must link to */
+                link: string;
+              } | null;
+            };
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description Error message */
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {

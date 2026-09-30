@@ -3,15 +3,17 @@ import { ExclamationTriangleIcon, InfoCircledIcon } from '@radix-ui/react-icons'
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Aircraft, FlightDetails } from '@/api/types';
 import { formatAltitude, formatHeading, formatSpeed, formatVerticalRate } from '@/lib/units';
+import { AircraftPhoto } from './AircraftPhoto';
 import { RouteSummary } from './RouteSummary';
 import { StatGrid } from './StatGrid';
 
 interface FlightDetailsContentProps {
+  icao24: string;
   details: UseQueryResult<FlightDetails>;
   snapshot: Aircraft | undefined;
 }
 
-export function FlightDetailsContent({ details, snapshot }: FlightDetailsContentProps) {
+export function FlightDetailsContent({ icao24, details, snapshot }: FlightDetailsContentProps) {
   if (details.isError) {
     return (
       <Callout.Root color="red" role="alert">
@@ -44,6 +46,8 @@ export function FlightDetailsContent({ details, snapshot }: FlightDetailsContent
           </Callout.Root>
         )}
       </Skeleton>
+
+      <AircraftPhoto icao24={icao24} />
 
       <StatGrid
         title="Live"
