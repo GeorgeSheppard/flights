@@ -8,15 +8,19 @@ export const AIRCRAFT_LAYER_ID = 'aircraft';
 export const AIRCRAFT_LABEL_LAYER_ID = `${AIRCRAFT_LAYER_ID}-labels`;
 export const PLANE_ICON_ID = 'plane';
 
+// `stale` marks a plane drawn where it was last seen, after its signal dropped out.
+export type MapAircraft = Aircraft & { stale?: boolean };
+
 export interface AircraftFeatureProperties {
   icao24: string;
   callsign: string | null;
   heading: number;
   onGround: boolean;
+  stale: boolean;
 }
 
 export function toFeatureCollection(
-  aircraft: Aircraft[]
+  aircraft: MapAircraft[]
 ): FeatureCollection<Point, AircraftFeatureProperties> {
   return {
     type: 'FeatureCollection',
@@ -29,6 +33,7 @@ export function toFeatureCollection(
         callsign: plane.callsign,
         heading: plane.headingDegrees ?? 0,
         onGround: plane.onGround,
+        stale: plane.stale ?? false,
       },
     })),
   };
@@ -40,6 +45,8 @@ const colors = {
   ground: '#8b8d98',
   selected: '#0090ff',
 };
+
+const staleOpacity: ExpressionSpecification = ['case', ['get', 'stale'], 0.45, 1];
 
 // Zoom expressions must be the top-level interpolate, so the scale is baked into each stop.
 const iconSize = (scale = 1): ExpressionSpecification => [
@@ -68,6 +75,7 @@ export function aircraftLayer(): LayerProps {
     },
     paint: {
       'icon-color': ['case', ['get', 'onGround'], colors.ground, colors.airborne],
+      'icon-opacity': staleOpacity,
       'icon-halo-color': '#1c2024',
       'icon-halo-width': 1.5,
     },
@@ -111,6 +119,7 @@ export function selectedAircraftLayer(icao24: string | null): LayerProps {
     },
     paint: {
       'icon-color': colors.selected,
+      'icon-opacity': staleOpacity,
       'icon-halo-color': '#ffffff',
       'icon-halo-width': 2,
     },

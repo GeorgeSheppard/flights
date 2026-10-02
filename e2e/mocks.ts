@@ -45,6 +45,13 @@ export const flightDetails = {
   },
 };
 
+export const notLocated = {
+  aircraft: null,
+  inboundFlight: null,
+  lastKnownPosition: null,
+  watchCallsigns: [] as string[],
+};
+
 export function hoursFromNow(hours: number): string {
   return new Date(Date.now() + hours * 3_600_000).toISOString();
 }

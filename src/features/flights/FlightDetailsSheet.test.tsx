@@ -118,4 +118,19 @@ describe('FlightDetailsSheet', () => {
     expect(await screen.findByText(/Upstream failure/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
+
+  it('says when the plane has no signal and is shown where it was last seen', async () => {
+    mockFetch(Response.json({ ...details, position: null }));
+
+    renderWithProviders(
+      <FlightDetailsSheet
+        flight={{ icao24: '4ca7b3' }}
+        snapshot={undefined}
+        lastSeenAt={Date.parse('2026-10-02T06:50:00Z')}
+        onClose={() => {}}
+      />
+    );
+
+    expect(await screen.findByText(/No signal since/)).toBeInTheDocument();
+  });
 });

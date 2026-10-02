@@ -1907,6 +1907,19 @@ export interface paths {
             };
           };
         };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
+            };
+          };
+        };
         /** @description Internal server error */
         500: {
           headers: {
@@ -1988,6 +2001,19 @@ export interface paths {
                 estimatedIn: string | null;
                 actualIn: string | null;
               }[];
+            };
+          };
+        };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
             };
           };
         };
@@ -2102,6 +2128,19 @@ export interface paths {
                 estimatedIn: string | null;
                 actualIn: string | null;
               } | null;
+            };
+          };
+        };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
             };
           };
         };
@@ -2233,7 +2272,7 @@ export interface paths {
                 headingDegrees: number | null;
                 verticalRateMetersPerSecond: number | null;
               } | null;
-              /** @description Set when the flight has not departed yet and its aircraft was found flying in to operate it */
+              /** @description The aircraft's previous flight, when the flight hasn't departed and that's where it was looked for */
               inboundFlight: {
                 /** @description Opaque identifier to pass to the flight details endpoint */
                 faFlightId: string;
@@ -2266,6 +2305,29 @@ export interface paths {
                 estimatedIn: string | null;
                 actualIn: string | null;
               } | null;
+              /** @description Where FlightAware last saw the aircraft, when it is not live (e.g. its transponder is off) */
+              lastKnownPosition: {
+                latitude: number;
+                longitude: number;
+                headingDegrees: number | null;
+                /** @description When FlightAware last received a position */
+                seenAt: string;
+              } | null;
+              /** @description Callsigns the aircraft may broadcast once its transponder is back on; empty when found */
+              watchCallsigns: string[];
+            };
+          };
+        };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
             };
           };
         };

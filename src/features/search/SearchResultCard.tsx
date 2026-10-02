@@ -2,11 +2,13 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { Badge, Card, Flex, Spinner, Text } from '@radix-ui/themes';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { isRateLimited } from '@/api/client';
 import type { FlightSearchResult } from '@/api/types';
 import { RouteSummary } from '@/features/flights/RouteSummary';
 import { mapPathFor } from '@/features/flights/selection';
 import { statusColor } from '@/features/flights/status';
 import { formatDate } from '@/lib/time';
+import { watchPathFor } from '@/features/watch/watch';
 import { useLocateFlight } from './queries';
 
 // 'flight' finds the flight itself in the air; 'plane' finds the plane due to operate it.
@@ -78,8 +80,18 @@ function ShowOnMapCard({
   const onClick = () => {
     if (locate.isPending) return;
     locate.mutate(flight.faFlightId, {
-      onSuccess: ({ aircraft }) => {
-        if (aircraft) navigate(mapPathFor(aircraft));
+      onSuccess: ({ aircraft, lastKnownPosition, watchCallsigns }) => {
+        if (aircraft) {
+          navigate(mapPathFor(aircraft));
+        } else if (lastKnownPosition) {
+          navigate(
+            watchPathFor({
+              flight: flight.ident,
+              callsigns: watchCallsigns,
+              ...lastKnownPosition,
+            })
+          );
+        }
       },
     });
   };
@@ -116,12 +128,14 @@ function LocateStatus({ locate, text }: LocateStatusProps) {
   if (locate.isError) {
     return (
       <Text size="2" color="red">
-        Couldn’t find it on the map. Tap to try again.
+        {isRateLimited(locate.error)
+          ? 'Too many lookups right now. Tap to try again in a minute.'
+          : 'Couldn’t find it on the map. Tap to try again.'}
       </Text>
     );
   }
 
-  if (locate.isSuccess && !locate.data.aircraft) {
+  if (locate.isSuccess && !locate.data.aircraft && !locate.data.lastKnownPosition) {
     return (
       <Text size="2" color="gray">
         {text.notFound}

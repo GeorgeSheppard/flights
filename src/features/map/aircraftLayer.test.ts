@@ -20,8 +20,20 @@ describe('toFeatureCollection', () => {
         type: 'Feature',
         id: '4ca7b3',
         geometry: { type: 'Point', coordinates: [-0.45, 51.47] },
-        properties: { icao24: '4ca7b3', callsign: 'BAW123', heading: 0, onGround: false },
+        properties: {
+          icao24: '4ca7b3',
+          callsign: 'BAW123',
+          heading: 0,
+          onGround: false,
+          stale: false,
+        },
       },
     ]);
+  });
+
+  it('marks planes only shown where they were last seen', () => {
+    expect(toFeatureCollection([{ ...aircraft, stale: true }]).features[0]!.properties.stale).toBe(
+      true
+    );
   });
 });

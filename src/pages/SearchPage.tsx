@@ -18,6 +18,7 @@ import {
   InfoCircledIcon,
   MagnifyingGlassIcon,
 } from '@radix-ui/react-icons';
+import { isRateLimited } from '@/api/client';
 import { SearchResultCard, type FindOnMap } from '@/features/search/SearchResultCard';
 import { groupResults, type ResultGroup } from '@/features/search/groupResults';
 import {
@@ -133,6 +134,20 @@ function SearchResults({ flightNumber }: { flightNumber: string }) {
           <InfoCircledIcon />
         </Callout.Icon>
         <Callout.Text>Flight search isn’t available yet. Check back soon.</Callout.Text>
+      </Callout.Root>
+    );
+  }
+
+  if (isRateLimited(search.error)) {
+    return (
+      <Callout.Root color="amber" role="alert">
+        <Callout.Icon>
+          <ExclamationTriangleIcon />
+        </Callout.Icon>
+        <Callout.Text>Too many searches right now. Try again in a minute.</Callout.Text>
+        <Button size="1" variant="soft" color="amber" onClick={() => search.refetch()}>
+          Try again
+        </Button>
       </Callout.Root>
     );
   }

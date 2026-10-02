@@ -11,10 +11,17 @@ interface FlightDetailsSheetProps {
   flight: SelectedFlight;
   // The last position seen on the map, shown instantly while full details load.
   snapshot: Aircraft | undefined;
+  // When the plane's signal dropped out, so it's only shown where it was last seen.
+  lastSeenAt?: number | null;
   onClose: () => void;
 }
 
-export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsSheetProps) {
+export function FlightDetailsSheet({
+  flight,
+  snapshot,
+  lastSeenAt,
+  onClose,
+}: FlightDetailsSheetProps) {
   const details = useFlightDetails(flight);
   const route = details.data?.route;
   const callsign = details.data?.callsign ?? flight.callsign ?? snapshot?.callsign;
@@ -49,7 +56,12 @@ export function FlightDetailsSheet({ flight, snapshot, onClose }: FlightDetailsS
 
   return (
     <BottomSheet header={header} onClose={onClose}>
-      <FlightDetailsContent icao24={flight.icao24} details={details} snapshot={snapshot} />
+      <FlightDetailsContent
+        icao24={flight.icao24}
+        details={details}
+        snapshot={snapshot}
+        lastSeenAt={lastSeenAt}
+      />
     </BottomSheet>
   );
 }

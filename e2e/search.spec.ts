@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { aircraft, flightDetails, hoursFromNow, mockApi, mockBasemap, searchResult } from './mocks';
+import {
+  aircraft,
+  flightDetails,
+  hoursFromNow,
+  mockApi,
+  mockBasemap,
+  notLocated,
+  searchResult,
+} from './mocks';
 
 test.beforeEach(async ({ page }) => {
   await mockBasemap(page);
@@ -72,7 +80,7 @@ test('tapping a flight in the air shows it on the map', async ({ page }) => {
     }),
     '/flights/locate': (url) => {
       located.push(url.searchParams.get('faFlightId') ?? '');
-      return { json: { aircraft, inboundFlight: null } };
+      return { json: { ...notLocated, aircraft } };
     },
   });
   await page.goto('/search?q=BA123');
@@ -97,7 +105,11 @@ test('tapping the next flight shows the plane flying in to operate it', async ({
       json: { flights: [searchResult('next', { scheduledOut: hoursFromNow(2) })] },
     }),
     '/flights/locate': () => ({
-      json: { aircraft: inbound, inboundFlight: searchResult('inbound', { ident: 'BAW122' }) },
+      json: {
+        ...notLocated,
+        aircraft: inbound,
+        inboundFlight: searchResult('inbound', { ident: 'BAW122' }),
+      },
     }),
   });
   await page.goto('/search?q=BA123');
@@ -106,6 +118,62 @@ test('tapping the next flight shows the plane flying in to operate it', async ({
 
   await expect(page).toHaveURL(/\/\?flight=4ca7b3&callsign=BAW122$/);
   await expect(page.getByRole('dialog').getByRole('heading', { name: 'BAW122' })).toBeVisible();
+});
+
+const parkedPlane = {
+  ...notLocated,
+  inboundFlight: searchResult('inbound', { ident: 'BAW122', actualIn: hoursFromNow(-0.5) }),
+  lastKnownPosition: {
+    latitude: aircraft.latitude,
+    longitude: aircraft.longitude,
+    headingDegrees: 270,
+    seenAt: hoursFromNow(-0.4),
+  },
+  watchCallsigns: ['BAW122', 'BAW123'],
+};
+
+test('a parked plane with its transponder off is waited for where it was last seen', async ({
+  page,
+}) => {
+  await mockApi(page, {
+    '/flights/area': () => ({ json: { aircraft: [] } }),
+    '/flights/search': () => ({
+      json: { flights: [searchResult('next', { scheduledOut: hoursFromNow(1) })] },
+    }),
+    '/flights/locate': () => ({ json: parkedPlane }),
+  });
+  await page.goto('/search?q=BA123');
+
+  await page.getByRole('button', { name: /Find my plane/ }).click();
+
+  await expect(page).toHaveURL(/[?&]watch=BAW123&for=BAW122%2CBAW123&/);
+  await expect(page.getByText(/Waiting for the plane for BAW123/)).toBeVisible();
+  await expect(page.getByText(/^Last seen/)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Stop waiting' }).click();
+  await expect(page.getByText(/Waiting for the plane/)).toBeHidden();
+});
+
+test('a waited-for plane is followed live once it switches its transponder on', async ({
+  page,
+}) => {
+  let areaRequests = 0;
+  await mockApi(page, {
+    // Quiet at first, then it appears broadcasting the searched flight's callsign.
+    '/flights/area': () => ({ json: { aircraft: areaRequests++ === 0 ? [] : [aircraft] } }),
+    '/flights/details': () => ({ json: flightDetails }),
+    '/flights/photo': () => ({ json: { photo: null } }),
+    '/flights/search': () => ({
+      json: { flights: [searchResult('next', { scheduledOut: hoursFromNow(1) })] },
+    }),
+    '/flights/locate': () => ({ json: parkedPlane }),
+  });
+  await page.goto('/search?q=BA123');
+
+  await page.getByRole('button', { name: /Find my plane/ }).click();
+
+  await expect(page).toHaveURL(/\/\?flight=4ca7b3&callsign=BAW123$/);
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'BAW123' })).toBeVisible();
 });
 
 test('says when no flights match', async ({ page }) => {
