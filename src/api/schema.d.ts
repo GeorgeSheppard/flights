@@ -2197,12 +2197,12 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Find the live aircraft flying a callsign, e.g. to show a flight search result on the map */
+    /** @description Find the live aircraft operating a searched flight. Before departure this is the aircraft flying in to operate it, if FlightAware knows which one that is */
     get: {
       parameters: {
         query: {
-          /** @description Callsign as broadcast by the aircraft, e.g. "BAW123" (a flight search result ident) */
-          callsign: string;
+          /** @description Flight identifier from a flight search result */
+          faFlightId: string;
         };
         header?: never;
         path?: never;
@@ -2210,14 +2210,14 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description The aircraft flying this callsign, or null when it is not being tracked */
+        /** @description The aircraft operating this flight, or null when it cannot be found */
         200: {
           headers: {
             [name: string]: unknown;
           };
           content: {
             'application/json': {
-              /** @description The aircraft currently broadcasting this callsign, null when it is not being tracked */
+              /** @description The aircraft operating this flight, null when it is not being tracked or not yet known */
               aircraft: {
                 /** @description 24-bit ICAO transponder address, e.g. "4ca7b3" */
                 icao24: string;
@@ -2233,6 +2233,39 @@ export interface paths {
                 headingDegrees: number | null;
                 verticalRateMetersPerSecond: number | null;
               } | null;
+              /** @description Set when the flight has not departed yet and its aircraft was found flying in to operate it */
+              inboundFlight: {
+                /** @description Opaque identifier to pass to the flight details endpoint */
+                faFlightId: string;
+                ident: string;
+                /** @description Operating airline */
+                operator: string | null;
+                aircraftType: string | null;
+                registration: string | null;
+                origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
+                  code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
+                  name: string | null;
+                  city: string | null;
+                } | null;
+                destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
+                  code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
+                  name: string | null;
+                  city: string | null;
+                } | null;
+                status: string;
+                scheduledOut: string | null;
+                estimatedOut: string | null;
+                actualOut: string | null;
+                scheduledIn: string | null;
+                estimatedIn: string | null;
+                actualIn: string | null;
+              } | null;
             };
           };
         };
@@ -2244,6 +2277,17 @@ export interface paths {
           content: {
             'application/json': {
               /** @description Error message */
+              error: string;
+            };
+          };
+        };
+        /** @description FlightAware is not configured yet */
+        501: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
               error: string;
             };
           };

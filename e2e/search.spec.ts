@@ -54,9 +54,10 @@ test('searching from the map lists matching flights, grouped by when they fly', 
   ]);
   await expect(page.getByText('En Route / On Time')).toBeVisible();
   await expect(page.getByText('Arrived / Gate Arrival')).toBeVisible();
-  // Only the flight in the air has a plane on the map to show.
-  await expect(page.getByRole('article')).toHaveCount(2);
+  // The flight in the air and the plane for the next flight can be found on the map.
+  await expect(page.getByRole('article')).toHaveCount(1);
   await expect(page.getByRole('button', { name: /Show on map/ })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /Find my plane/ })).toHaveCount(1);
   expect(searched).toEqual(['BA123']);
 });
 
@@ -70,8 +71,8 @@ test('tapping a flight in the air shows it on the map', async ({ page }) => {
       json: { flights: [searchResult('flying', { actualOut: hoursFromNow(-1) })] },
     }),
     '/flights/locate': (url) => {
-      located.push(url.searchParams.get('callsign') ?? '');
-      return { json: { aircraft } };
+      located.push(url.searchParams.get('faFlightId') ?? '');
+      return { json: { aircraft, inboundFlight: null } };
     },
   });
   await page.goto('/search?q=BA123');
@@ -80,10 +81,31 @@ test('tapping a flight in the air shows it on the map', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/\?flight=4ca7b3&callsign=BAW123$/);
   await expect(page.getByRole('dialog').getByRole('heading', { name: 'BAW123' })).toBeVisible();
-  expect(located).toEqual(['BAW123']);
+  expect(located).toEqual(['flying']);
 
   await page.goBack();
   await expect(page).toHaveURL(/\/search\?q=BA123$/);
+});
+
+test('tapping the next flight shows the plane flying in to operate it', async ({ page }) => {
+  const inbound = { ...aircraft, callsign: 'BAW122' };
+  await mockApi(page, {
+    '/flights/area': () => ({ json: { aircraft: [inbound] } }),
+    '/flights/details': () => ({ json: { ...flightDetails, callsign: 'BAW122' } }),
+    '/flights/photo': () => ({ json: { photo: null } }),
+    '/flights/search': () => ({
+      json: { flights: [searchResult('next', { scheduledOut: hoursFromNow(2) })] },
+    }),
+    '/flights/locate': () => ({
+      json: { aircraft: inbound, inboundFlight: searchResult('inbound', { ident: 'BAW122' }) },
+    }),
+  });
+  await page.goto('/search?q=BA123');
+
+  await page.getByRole('button', { name: /Find my plane/ }).click();
+
+  await expect(page).toHaveURL(/\/\?flight=4ca7b3&callsign=BAW122$/);
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'BAW122' })).toBeVisible();
 });
 
 test('says when no flights match', async ({ page }) => {

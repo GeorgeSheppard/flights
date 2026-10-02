@@ -7,10 +7,25 @@ import { RouteSummary } from '@/features/flights/RouteSummary';
 import { mapPathFor } from '@/features/flights/selection';
 import { statusColor } from '@/features/flights/status';
 import { formatDate } from '@/lib/time';
-import { isInTheAir } from './groupResults';
 import { useLocateFlight } from './queries';
 
-export function SearchResultCard({ flight }: { flight: FlightSearchResult }) {
+// 'flight' finds the flight itself in the air; 'plane' finds the plane due to operate it.
+export type FindOnMap = 'flight' | 'plane';
+
+const labels: Record<FindOnMap, { action: string; notFound: string }> = {
+  flight: { action: 'Show on map', notFound: 'It isn’t being tracked on the map right now.' },
+  plane: {
+    action: 'Find my plane',
+    notFound: 'Its plane isn’t on the map yet. Try again closer to departure.',
+  },
+};
+
+interface SearchResultCardProps {
+  flight: FlightSearchResult;
+  findOnMap?: FindOnMap;
+}
+
+export function SearchResultCard({ flight, findOnMap }: SearchResultCardProps) {
   const aircraft = [flight.aircraftType, flight.registration].filter(Boolean).join(' · ');
 
   const content = (
@@ -37,9 +52,12 @@ export function SearchResultCard({ flight }: { flight: FlightSearchResult }) {
     </Flex>
   );
 
-  // Only a flight that's airborne right now has a plane on the map to show.
-  if (isInTheAir(flight)) {
-    return <ShowOnMapCard flight={flight}>{content}</ShowOnMapCard>;
+  if (findOnMap) {
+    return (
+      <ShowOnMapCard flight={flight} findOnMap={findOnMap}>
+        {content}
+      </ShowOnMapCard>
+    );
   }
 
   return (
@@ -49,14 +67,18 @@ export function SearchResultCard({ flight }: { flight: FlightSearchResult }) {
   );
 }
 
-function ShowOnMapCard({ flight, children }: { flight: FlightSearchResult; children: ReactNode }) {
+function ShowOnMapCard({
+  flight,
+  findOnMap,
+  children,
+}: Required<SearchResultCardProps> & { children: ReactNode }) {
   const navigate = useNavigate();
   const locate = useLocateFlight();
 
   const onClick = () => {
     if (locate.isPending) return;
-    locate.mutate(flight.ident, {
-      onSuccess: (aircraft) => {
+    locate.mutate(flight.faFlightId, {
+      onSuccess: ({ aircraft }) => {
         if (aircraft) navigate(mapPathFor(aircraft));
       },
     });
@@ -67,20 +89,25 @@ function ShowOnMapCard({ flight, children }: { flight: FlightSearchResult; child
       <button type="button" onClick={onClick} style={{ width: '100%', textAlign: 'start' }}>
         <Flex direction="column" gap="3">
           {children}
-          <LocateStatus locate={locate} />
+          <LocateStatus locate={locate} text={labels[findOnMap]} />
         </Flex>
       </button>
     </Card>
   );
 }
 
-function LocateStatus({ locate }: { locate: ReturnType<typeof useLocateFlight> }) {
+interface LocateStatusProps {
+  locate: ReturnType<typeof useLocateFlight>;
+  text: (typeof labels)[FindOnMap];
+}
+
+function LocateStatus({ locate, text }: LocateStatusProps) {
   if (locate.isPending) {
     return (
       <Flex align="center" gap="2">
         <Spinner size="1" />
         <Text size="2" color="gray">
-          Finding it on the map…
+          Finding it…
         </Text>
       </Flex>
     );
@@ -94,10 +121,10 @@ function LocateStatus({ locate }: { locate: ReturnType<typeof useLocateFlight> }
     );
   }
 
-  if (locate.isSuccess && !locate.data) {
+  if (locate.isSuccess && !locate.data.aircraft) {
     return (
       <Text size="2" color="gray">
-        It isn’t being tracked on the map right now.
+        {text.notFound}
       </Text>
     );
   }
@@ -105,7 +132,7 @@ function LocateStatus({ locate }: { locate: ReturnType<typeof useLocateFlight> }
   return (
     <Flex align="center" gap="1" style={{ color: 'var(--accent-11)' }}>
       <Text size="2" weight="medium">
-        Show on map
+        {text.action}
       </Text>
       <ChevronRightIcon />
     </Flex>

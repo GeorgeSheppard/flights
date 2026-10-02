@@ -85,6 +85,7 @@ describe('SearchPage', () => {
   it('opens the map on a flight that is in the air when it is clicked', async () => {
     const fetchMock = mockApi(
       Response.json({
+        inboundFlight: null,
         aircraft: {
           icao24: '4ca7b3',
           callsign: 'BAW123',
@@ -105,11 +106,11 @@ describe('SearchPage', () => {
     expect(await screen.findByText('Map at /?flight=4ca7b3&callsign=BAW123')).toBeInTheDocument();
     const locateUrl = new URL(fetchMock.mock.calls[1]![0].url);
     expect(locateUrl.pathname).toBe('/flights/locate');
-    expect(locateUrl.searchParams.get('callsign')).toBe('BAW123');
+    expect(locateUrl.searchParams.get('faFlightId')).toBe('BAW123-1');
   });
 
   it('says so when a flight in the air is not on the map', async () => {
-    mockApi(Response.json({ aircraft: null }));
+    mockApi(Response.json({ aircraft: null, inboundFlight: null }));
     renderSearchAndMap();
 
     fireEvent.click(await screen.findByRole('button', { name: /Show on map/ }));
@@ -117,11 +118,42 @@ describe('SearchPage', () => {
     expect(await screen.findByText(/isn’t being tracked on the map/)).toBeInTheDocument();
   });
 
-  it('only offers to show flights that are in the air', async () => {
-    mockFetch(Response.json({ flights: [{ ...result, actualIn: '2026-09-26T11:20:00Z' }] }));
+  it('offers to find the plane for the next upcoming flight only', async () => {
+    const upcoming = (faFlightId: string, scheduledOut: string): FlightSearchResult => ({
+      ...result,
+      faFlightId,
+      status: 'Scheduled',
+      scheduledOut,
+      actualOut: null,
+    });
+    mockFetch(
+      Response.json({
+        flights: [
+          upcoming('BAW123-3', '2026-09-28T10:00:00Z'),
+          upcoming('BAW123-2', '2026-09-27T10:00:00Z'),
+          { ...result, faFlightId: 'BAW123-0', actualIn: '2026-09-26T11:20:00Z' },
+        ],
+      })
+    );
     renderWithProviders(<SearchPage />, { route: '/search?q=BA123' });
 
-    expect(await screen.findByText('BAW123')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Show on map/ })).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Find my plane/ })).toHaveTextContent(
+      'Sun, Sep 27'
+    );
+    expect(screen.getAllByRole('button', { name: /Find my plane|Show on map/ })).toHaveLength(1);
+  });
+
+  it('says so when the plane for an upcoming flight is not known yet', async () => {
+    const fetchMock = vi.fn(async (request: Request) =>
+      new URL(request.url).pathname === '/flights/locate'
+        ? Response.json({ aircraft: null, inboundFlight: null })
+        : Response.json({ flights: [{ ...result, actualOut: null }] })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    renderWithProviders(<SearchPage />, { route: '/search?q=BA123' });
+
+    fireEvent.click(await screen.findByRole('button', { name: /Find my plane/ }));
+
+    expect(await screen.findByText(/Its plane isn’t on the map yet/)).toBeInTheDocument();
   });
 });
