@@ -11,19 +11,27 @@ export const apiClient = createClient<paths>({
 export class ApiError extends Error {
   constructor(
     message: string,
-    readonly status: number
+    readonly status: number,
+    // Set when an upstream provider's rate limit was hit.
+    readonly retryAfterSeconds: number | null = null
   ) {
     super(message);
   }
 }
 
+export const isRateLimited = (error: Error | null): error is ApiError =>
+  error instanceof ApiError && error.status === 429;
+
 export function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
   if (result.data === undefined) {
+    const body = result.error && typeof result.error === 'object' ? result.error : {};
     const message =
-      result.error && typeof result.error === 'object' && 'error' in result.error
-        ? String(result.error.error)
-        : `Request failed with status ${result.response.status}`;
-    throw new ApiError(message, result.response.status);
+      'error' in body ? String(body.error) : `Request failed with status ${result.response.status}`;
+    const retryAfterSeconds =
+      'retryAfterSeconds' in body && typeof body.retryAfterSeconds === 'number'
+        ? body.retryAfterSeconds
+        : null;
+    throw new ApiError(message, result.response.status, retryAfterSeconds);
   }
   return result.data;
 }

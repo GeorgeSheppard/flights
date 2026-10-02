@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Map, {
   GeolocateControl,
   Layer,
@@ -10,7 +10,6 @@ import Map, {
 } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './maplibre';
-import type { Aircraft } from '@/api/types';
 import { config } from '@/app/config';
 import type { Bounds } from '@/lib/bounds';
 import {
@@ -22,6 +21,7 @@ import {
   selectedAircraftLayer,
   toFeatureCollection,
   type AircraftFeatureProperties,
+  type MapAircraft,
 } from './aircraftLayer';
 import type { Feature, LineString } from 'geojson';
 import { TRACK_SOURCE_ID, trackCasingLayer, trackLineLayer } from '@/features/tracks/trackLayer';
@@ -47,12 +47,12 @@ export interface ViewportChange {
 }
 
 interface FlightMapProps {
-  aircraft: Aircraft[];
+  aircraft: MapAircraft[];
   selectedIcao24: string | null;
   onSelect: (aircraft: AircraftFeatureProperties | null) => void;
   onViewportChange: (viewport: ViewportChange) => void;
   // A point to move the camera to, e.g. a shared flight that may be outside the initial view.
-  focus?: { longitude: number; latitude: number } | null;
+  focus?: { longitude: number; latitude: number; zoom?: number } | null;
   // The selected aircraft's recent path, drawn beneath the aircraft.
   track?: Feature<LineString> | null;
   // Long-press on touch screens, or right-click with a mouse.
@@ -73,14 +73,16 @@ export function FlightMap({
   const internalRef = useRef<MapRef>(null);
   const data = useMemo(() => toFeatureCollection(aircraft), [aircraft]);
   const longPress = useLongPress(internalRef, onLongPress);
+  // A focus known on the first render (e.g. from the URL) has to wait for the map to exist.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!focus) return;
+    if (!focus || !loaded) return;
     internalRef.current?.flyTo({
       center: [focus.longitude, focus.latitude],
-      zoom: Math.max(internalRef.current.getZoom(), config.minZoomForAircraft + 2),
+      zoom: focus.zoom ?? Math.max(internalRef.current.getZoom(), config.minZoomForAircraft + 2),
     });
-  }, [focus]);
+  }, [focus, loaded]);
 
   const reportViewport = useCallback(() => {
     const map = internalRef.current;
@@ -146,6 +148,7 @@ export function FlightMap({
           .querySelector('.maplibregl-compact-show')
           ?.classList.remove('maplibregl-compact-show');
         reportViewport();
+        setLoaded(true);
       }}
       onMoveEnd={reportViewport}
       onClick={handleClick}

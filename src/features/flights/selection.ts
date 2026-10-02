@@ -20,6 +20,12 @@ export function parseSelection(params: URLSearchParams): SelectedFlight | null {
   return icao24 ? { icao24, callsign: params.get(CALLSIGN_PARAM) } : null;
 }
 
+export function mapPathFor(flight: SelectedFlight): string {
+  const params = new URLSearchParams({ [FLIGHT_PARAM]: flight.icao24 });
+  if (flight.callsign) params.set(CALLSIGN_PARAM, flight.callsign);
+  return `/?${params}`;
+}
+
 export function useSelectedFlight() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();

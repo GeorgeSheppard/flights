@@ -1907,6 +1907,19 @@ export interface paths {
             };
           };
         };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
+            };
+          };
+        };
         /** @description Internal server error */
         500: {
           headers: {
@@ -1988,6 +2001,19 @@ export interface paths {
                 estimatedIn: string | null;
                 actualIn: string | null;
               }[];
+            };
+          };
+        };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
             };
           };
         };
@@ -2105,6 +2131,19 @@ export interface paths {
             };
           };
         };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
+            };
+          };
+        };
         /** @description Internal server error */
         500: {
           headers: {
@@ -2176,6 +2215,141 @@ export interface paths {
           content: {
             'application/json': {
               /** @description Error message */
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/flights/locate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Find the live aircraft operating a searched flight. Before departure this is the aircraft flying in to operate it, if FlightAware knows which one that is */
+    get: {
+      parameters: {
+        query: {
+          /** @description Flight identifier from a flight search result */
+          faFlightId: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The aircraft operating this flight, or null when it cannot be found */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description The aircraft operating this flight, null when it is not being tracked or not yet known */
+              aircraft: {
+                /** @description 24-bit ICAO transponder address, e.g. "4ca7b3" */
+                icao24: string;
+                /** @description Callsign currently broadcast by the aircraft */
+                callsign: string | null;
+                latitude: number;
+                longitude: number;
+                onGround: boolean;
+                /** @description Barometric altitude in meters */
+                altitudeMeters: number | null;
+                velocityMetersPerSecond: number | null;
+                /** @description True track in degrees, 0 is north */
+                headingDegrees: number | null;
+                verticalRateMetersPerSecond: number | null;
+              } | null;
+              /** @description The aircraft's previous flight, when the flight hasn't departed and that's where it was looked for */
+              inboundFlight: {
+                /** @description Opaque identifier to pass to the flight details endpoint */
+                faFlightId: string;
+                ident: string;
+                /** @description Operating airline */
+                operator: string | null;
+                aircraftType: string | null;
+                registration: string | null;
+                origin: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
+                  code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
+                  name: string | null;
+                  city: string | null;
+                } | null;
+                destination: {
+                  /** @description ICAO airport code, e.g. "EGLL" */
+                  code: string | null;
+                  /** @description IATA airport code as shown to passengers, e.g. "LHR"; null for many small airfields */
+                  iataCode: string | null;
+                  name: string | null;
+                  city: string | null;
+                } | null;
+                status: string;
+                scheduledOut: string | null;
+                estimatedOut: string | null;
+                actualOut: string | null;
+                scheduledIn: string | null;
+                estimatedIn: string | null;
+                actualIn: string | null;
+              } | null;
+              /** @description Where FlightAware last saw the aircraft, when it is not live (e.g. its transponder is off) */
+              lastKnownPosition: {
+                latitude: number;
+                longitude: number;
+                headingDegrees: number | null;
+                /** @description When FlightAware last received a position */
+                seenAt: string;
+              } | null;
+              /** @description Callsigns the aircraft may broadcast once its transponder is back on; empty when found */
+              watchCallsigns: string[];
+            };
+          };
+        };
+        /** @description An upstream provider rate limit was reached; retry after retryAfterSeconds */
+        429: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              error: string;
+              /** @description How long to wait before trying again */
+              retryAfterSeconds: number;
+            };
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description Error message */
+              error: string;
+            };
+          };
+        };
+        /** @description FlightAware is not configured yet */
+        501: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
               error: string;
             };
           };

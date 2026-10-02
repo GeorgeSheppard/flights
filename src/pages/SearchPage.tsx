@@ -18,8 +18,9 @@ import {
   InfoCircledIcon,
   MagnifyingGlassIcon,
 } from '@radix-ui/react-icons';
-import { SearchResultCard } from '@/features/search/SearchResultCard';
-import { groupResults } from '@/features/search/groupResults';
+import { isRateLimited } from '@/api/client';
+import { SearchResultCard, type FindOnMap } from '@/features/search/SearchResultCard';
+import { groupResults, type ResultGroup } from '@/features/search/groupResults';
 import {
   isSearchUnavailable,
   normaliseFlightNumber,
@@ -97,6 +98,14 @@ export function SearchPage() {
   );
 }
 
+// A flight in the air is on the map. Of the upcoming ones, only the next has a chance of its plane
+// being known yet, flying in to operate it.
+function findOnMap(group: ResultGroup, index: number): FindOnMap | undefined {
+  if (group.id === 'inTheAir') return 'flight';
+  if (group.id === 'upcoming' && index === 0) return 'plane';
+  return undefined;
+}
+
 function SearchResults({ flightNumber }: { flightNumber: string }) {
   const search = useFlightSearch(flightNumber);
 
@@ -125,6 +134,20 @@ function SearchResults({ flightNumber }: { flightNumber: string }) {
           <InfoCircledIcon />
         </Callout.Icon>
         <Callout.Text>Flight search isn’t available yet. Check back soon.</Callout.Text>
+      </Callout.Root>
+    );
+  }
+
+  if (isRateLimited(search.error)) {
+    return (
+      <Callout.Root color="amber" role="alert">
+        <Callout.Icon>
+          <ExclamationTriangleIcon />
+        </Callout.Icon>
+        <Callout.Text>Too many searches right now. Try again in a minute.</Callout.Text>
+        <Button size="1" variant="soft" color="amber" onClick={() => search.refetch()}>
+          Try again
+        </Button>
       </Callout.Root>
     );
   }
@@ -162,8 +185,12 @@ function SearchResults({ flightNumber }: { flightNumber: string }) {
             <Heading as="h2" size="2" color="gray" weight="medium" className={styles.groupTitle}>
               {group.title}
             </Heading>
-            {group.flights.map((flight) => (
-              <SearchResultCard key={flight.faFlightId} flight={flight} />
+            {group.flights.map((flight, index) => (
+              <SearchResultCard
+                key={flight.faFlightId}
+                flight={flight}
+                findOnMap={findOnMap(group, index)}
+              />
             ))}
           </section>
         </Flex>

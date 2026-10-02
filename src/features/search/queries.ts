@@ -1,4 +1,4 @@
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query';
 import { ApiError, apiClient, unwrap } from '@/api/client';
 
 export const searchKeys = {
@@ -30,3 +30,12 @@ export function useFlightSearch(flightNumber: string) {
 
 export const isSearchUnavailable = (error: Error | null) =>
   error instanceof ApiError && error.status === 501;
+
+// Finds the live aircraft operating a searched flight, or the one flying in to operate it if it
+// hasn't departed yet, so it can be shown on the map.
+export function useLocateFlight() {
+  return useMutation({
+    mutationFn: async (faFlightId: string) =>
+      unwrap(await apiClient.GET('/flights/locate', { params: { query: { faFlightId } } })),
+  });
+}

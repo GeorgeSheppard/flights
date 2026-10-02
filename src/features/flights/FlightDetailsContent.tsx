@@ -2,6 +2,7 @@ import { Button, Callout, Flex, Separator, Skeleton, Text } from '@radix-ui/them
 import { ExclamationTriangleIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Aircraft, FlightDetails } from '@/api/types';
+import { formatTime } from '@/lib/time';
 import { formatAltitude, formatHeading, formatSpeed, formatVerticalRate } from '@/lib/units';
 import { AircraftPhoto } from './AircraftPhoto';
 import { RouteSummary } from './RouteSummary';
@@ -11,9 +12,15 @@ interface FlightDetailsContentProps {
   icao24: string;
   details: UseQueryResult<FlightDetails>;
   snapshot: Aircraft | undefined;
+  lastSeenAt?: number | null;
 }
 
-export function FlightDetailsContent({ icao24, details, snapshot }: FlightDetailsContentProps) {
+export function FlightDetailsContent({
+  icao24,
+  details,
+  snapshot,
+  lastSeenAt,
+}: FlightDetailsContentProps) {
   if (details.isError) {
     return (
       <Callout.Root color="red" role="alert">
@@ -34,6 +41,17 @@ export function FlightDetailsContent({ icao24, details, snapshot }: FlightDetail
 
   return (
     <Flex direction="column" gap="4">
+      {lastSeenAt && (
+        <Callout.Root color="amber" variant="surface" size="1">
+          <Callout.Icon>
+            <InfoCircledIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            No signal since {formatTime(new Date(lastSeenAt).toISOString())}. It’s shown where it
+            was last seen and will move again once it’s heard from.
+          </Callout.Text>
+        </Callout.Root>
+      )}
       <Skeleton loading={details.isPending} height="88px">
         {route ? (
           <RouteSummary route={route} />

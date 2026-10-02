@@ -71,6 +71,28 @@ test('a shared link opens straight to the flight', async ({ page }) => {
   await expect(sheet.getByText('British Airways')).toBeVisible();
 });
 
+test('a selected plane that goes quiet stays on the map where it was last seen', async ({
+  page,
+}) => {
+  let areaRequests = 0;
+  await mockBasemap(page);
+  await mockApi(page, {
+    // Seen once, then its transponder goes quiet.
+    '/flights/area': () => ({ json: { aircraft: areaRequests++ === 0 ? [aircraft] : [] } }),
+    '/flights/details': () => ({ json: { ...flightDetails, position: null } }),
+    '/flights/photo': () => ({ json: { photo: null } }),
+  });
+  await page.goto('/?flight=4ca7b3&callsign=BAW123');
+  await expect.poll(() => areaRequests).toBeGreaterThan(0);
+
+  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await expect.poll(() => areaRequests).toBeGreaterThan(1);
+
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByText(/No signal since/)).toBeVisible();
+  await expect(page).toHaveURL(/\?flight=4ca7b3&callsign=BAW123$/);
+});
+
 test('asks the user to zoom in rather than loading the whole world', async ({ page }) => {
   const areaRequests = await openMapWithAircraft(page);
   const zoomOut = page.getByRole('button', { name: 'Zoom out' });
