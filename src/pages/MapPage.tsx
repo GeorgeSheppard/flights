@@ -112,7 +112,8 @@ function MapScreen() {
   );
 }
 
-// When the app is opened from a shared link, centre the map on that flight once its position loads.
+// When the map is opened on a flight (a shared link, or a search result), centre the map on that
+// flight once its position loads.
 function useSharedFlightFocus(selected: SelectedFlight | null) {
   const [sharedFlight] = useState(() =>
     parseSelection(new URLSearchParams(window.location.search))

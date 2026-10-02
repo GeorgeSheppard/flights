@@ -2190,6 +2190,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/flights/locate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Find the live aircraft flying a callsign, e.g. to show a flight search result on the map */
+    get: {
+      parameters: {
+        query: {
+          /** @description Callsign as broadcast by the aircraft, e.g. "BAW123" (a flight search result ident) */
+          callsign: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The aircraft flying this callsign, or null when it is not being tracked */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description The aircraft currently broadcasting this callsign, null when it is not being tracked */
+              aircraft: {
+                /** @description 24-bit ICAO transponder address, e.g. "4ca7b3" */
+                icao24: string;
+                /** @description Callsign currently broadcast by the aircraft */
+                callsign: string | null;
+                latitude: number;
+                longitude: number;
+                onGround: boolean;
+                /** @description Barometric altitude in meters */
+                altitudeMeters: number | null;
+                velocityMetersPerSecond: number | null;
+                /** @description True track in degrees, 0 is north */
+                headingDegrees: number | null;
+                verticalRateMetersPerSecond: number | null;
+              } | null;
+            };
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': {
+              /** @description Error message */
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {

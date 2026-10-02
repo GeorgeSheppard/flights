@@ -8,10 +8,13 @@ export interface ResultGroup {
 const departure = (flight: FlightSearchResult) =>
   flight.actualOut ?? flight.estimatedOut ?? flight.scheduledOut ?? '';
 
+export const isInTheAir = (flight: FlightSearchResult) =>
+  Boolean(flight.actualOut && !flight.actualIn);
+
 // AeroAPI returns a couple of weeks of past and scheduled flights for a flight number, so split
 // them into what's flying now, what's next, and what's already happened.
 export function groupResults(flights: FlightSearchResult[]): ResultGroup[] {
-  const inTheAir = flights.filter((flight) => flight.actualOut && !flight.actualIn);
+  const inTheAir = flights.filter(isInTheAir);
   const upcoming = flights
     .filter((flight) => !flight.actualOut && !flight.actualIn)
     .sort((a, b) => departure(a).localeCompare(departure(b)));

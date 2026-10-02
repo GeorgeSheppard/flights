@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { hoursFromNow, mockApi, mockBasemap, searchResult } from './mocks';
+import { aircraft, flightDetails, hoursFromNow, mockApi, mockBasemap, searchResult } from './mocks';
 
 test.beforeEach(async ({ page }) => {
   await mockBasemap(page);
@@ -54,8 +54,36 @@ test('searching from the map lists matching flights, grouped by when they fly', 
   ]);
   await expect(page.getByText('En Route / On Time')).toBeVisible();
   await expect(page.getByText('Arrived / Gate Arrival')).toBeVisible();
-  await expect(page.getByRole('article')).toHaveCount(3);
+  // Only the flight in the air has a plane on the map to show.
+  await expect(page.getByRole('article')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: /Show on map/ })).toHaveCount(1);
   expect(searched).toEqual(['BA123']);
+});
+
+test('tapping a flight in the air shows it on the map', async ({ page }) => {
+  const located: string[] = [];
+  await mockApi(page, {
+    '/flights/area': () => ({ json: { aircraft: [aircraft] } }),
+    '/flights/details': () => ({ json: flightDetails }),
+    '/flights/photo': () => ({ json: { photo: null } }),
+    '/flights/search': () => ({
+      json: { flights: [searchResult('flying', { actualOut: hoursFromNow(-1) })] },
+    }),
+    '/flights/locate': (url) => {
+      located.push(url.searchParams.get('callsign') ?? '');
+      return { json: { aircraft } };
+    },
+  });
+  await page.goto('/search?q=BA123');
+
+  await page.getByRole('button', { name: /Show on map/ }).click();
+
+  await expect(page).toHaveURL(/\/\?flight=4ca7b3&callsign=BAW123$/);
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'BAW123' })).toBeVisible();
+  expect(located).toEqual(['BAW123']);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/search\?q=BA123$/);
 });
 
 test('says when no flights match', async ({ page }) => {

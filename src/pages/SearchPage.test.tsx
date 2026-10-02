@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
+import { Route, Routes, useLocation } from 'react-router';
 import type { FlightSearchResult } from '@/api/types';
 import { mockFetch, renderWithProviders } from '@/test/render';
 import { SearchPage } from './SearchPage';
@@ -19,6 +20,31 @@ const result: FlightSearchResult = {
   estimatedIn: '2026-09-26T11:22:00Z',
   actualIn: null,
 };
+
+// Answers search and locate requests separately, since clicking a result makes a second request.
+function mockApi(locateResponse: Response) {
+  const fetchMock = vi.fn(async (request: Request) =>
+    new URL(request.url).pathname === '/flights/locate'
+      ? locateResponse.clone()
+      : Response.json({ flights: [result] })
+  );
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
+
+function MapLocation() {
+  const location = useLocation();
+  return <p>Map at {location.pathname + location.search}</p>;
+}
+
+const renderSearchAndMap = () =>
+  renderWithProviders(
+    <Routes>
+      <Route path="/search" element={<SearchPage />} />
+      <Route path="/" element={<MapLocation />} />
+    </Routes>,
+    { route: '/search?q=BA123' }
+  );
 
 describe('SearchPage', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -54,5 +80,48 @@ describe('SearchPage', () => {
     renderWithProviders(<SearchPage />, { route: '/search?q=BA123' });
 
     expect(await screen.findByText(/Flight search isn’t available yet/)).toBeInTheDocument();
+  });
+
+  it('opens the map on a flight that is in the air when it is clicked', async () => {
+    const fetchMock = mockApi(
+      Response.json({
+        aircraft: {
+          icao24: '4ca7b3',
+          callsign: 'BAW123',
+          latitude: 55,
+          longitude: -3,
+          onGround: false,
+          altitudeMeters: 10000,
+          velocityMetersPerSecond: 230,
+          headingDegrees: 0,
+          verticalRateMetersPerSecond: 0,
+        },
+      })
+    );
+    renderSearchAndMap();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Show on map/ }));
+
+    expect(await screen.findByText('Map at /?flight=4ca7b3&callsign=BAW123')).toBeInTheDocument();
+    const locateUrl = new URL(fetchMock.mock.calls[1]![0].url);
+    expect(locateUrl.pathname).toBe('/flights/locate');
+    expect(locateUrl.searchParams.get('callsign')).toBe('BAW123');
+  });
+
+  it('says so when a flight in the air is not on the map', async () => {
+    mockApi(Response.json({ aircraft: null }));
+    renderSearchAndMap();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Show on map/ }));
+
+    expect(await screen.findByText(/isn’t being tracked on the map/)).toBeInTheDocument();
+  });
+
+  it('only offers to show flights that are in the air', async () => {
+    mockFetch(Response.json({ flights: [{ ...result, actualIn: '2026-09-26T11:20:00Z' }] }));
+    renderWithProviders(<SearchPage />, { route: '/search?q=BA123' });
+
+    expect(await screen.findByText('BAW123')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Show on map/ })).not.toBeInTheDocument();
   });
 });
